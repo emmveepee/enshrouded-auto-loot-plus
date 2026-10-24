@@ -6,7 +6,7 @@ Experimental Windows x64 client mod for Steam Enshrouded. Based on Auto Loot Plu
 
 ## Download and install
 
-Download **AutoLootPlus-Client-134.zip** from [Releases](../../releases), extract the whole ZIP, close the game, then run `Install.cmd`. It finds Steam libraries or asks for the game folder. Start the game normally through Steam; press **F8** for settings.
+Download **AutoLootPlus-Client-134.zip** from [Releases](https://github.com/emmveepee/enshrouded-auto-loot-plus/releases), extract the whole ZIP, close the game, then run `Install.cmd`. It finds Steam libraries or asks for the game folder. Start the game normally through Steam; press **F8** for settings.
 
 The installer checks package hashes, refuses differing existing files by default, backs up replacements, and generates paths for your PC. Keep the extracted folder's `Backups` directory for recovery. Existing custom ASI loaders require review and `-UseExistingAsiLoader`; do not overwrite one blindly. Updates to an existing auto-loot installation may need `-ReplaceExisting` after reviewing its configuration.
 
@@ -51,3 +51,4 @@ scripts\Test.cmd
 ## Credits and license
 
 Upstream Auto Loot Plus 1.0.3 by cw; source supplied with the original mod's MIT notice. Local additions are MIT. See [LICENSE](LICENSE) and `package/licenses/` for upstream, local, Dear ImGui, Vulkan-Headers and [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader) notices. No game executable, Steam API DLL, save, credentials, private logs or unrelated mods are distributed.
+
