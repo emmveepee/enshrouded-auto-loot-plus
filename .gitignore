@@ -1,0 +1,9 @@
+build/
+artifacts/
+Backups/
+*.log
+*.obj
+*.exp
+*.lib
+*.pdb
+__pycache__/

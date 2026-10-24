@@ -1,0 +1,87 @@
+[
+  {
+    "path": "ClientLootRequests.ini.template",
+    "sha256": "875E1CE7255979A9F963A05346359E89A8C05CEDE4589C26F9E634959765CD65",
+    "bytes": 468
+  },
+  {
+    "path": "GameFiles/AutoLootPlus.asi",
+    "sha256": "9CB3745AD6E8D9C4943BD34F965F4EF53C18655BB51E403D25DF1BF89BB71C30",
+    "bytes": 716288
+  },
+  {
+    "path": "GameFiles/ClientLootRequests.asi",
+    "sha256": "1674DFFBBE5ED56E8DAEFAC7FA445C411F504129D28867E0A2B1E7BF055FD83E",
+    "bytes": 1346048
+  },
+  {
+    "path": "GameFiles/mods/auto-loot-plus/config.txt",
+    "sha256": "985557CF88D1EDC9BEC873F3BA83DB90379F325EC37D07399A30FD74B7708670",
+    "bytes": 381
+  },
+  {
+    "path": "GameFiles/mods/auto-loot-plus/quest_items.txt",
+    "sha256": "776D868DC4FC65A97670BAABBFBD3879F2A0982E061A3427714B644B4455AA2C",
+    "bytes": 3211
+  },
+  {
+    "path": "GameFiles/mods/AutoLootClient/Probe134.dll",
+    "sha256": "8A666B35905E241E0CC45A47E0C86F7774AD7163E0D117FBC12CAF8C6B7900FC",
+    "bytes": 1344000
+  },
+  {
+    "path": "Install.cmd",
+    "sha256": "E7A9CF6DA097CBBF2C84E418F8ADD5307AA35A09C3D1617CB499DD80E02AD4B7",
+    "bytes": 201
+  },
+  {
+    "path": "Install.ps1",
+    "sha256": "902658900D578AF94FAA5A61C0DC7A64C7184DCB8E5E92C7D1C379322B99A23D",
+    "bytes": 6047
+  },
+  {
+    "path": "licenses/Apache-2.0.txt",
+    "sha256": "CFC7749B96F63BD31C3C42B5C471BF756814053E847C10F3EB003417BC523D30",
+    "bytes": 11358
+  },
+  {
+    "path": "licenses/AutoLootPlus-LICENSE.txt",
+    "sha256": "A7C94456A698126F745E329D9643FCE2865846D7AF5D88D9DAD73815DA7119D4",
+    "bytes": 1059
+  },
+  {
+    "path": "licenses/Dear-ImGui-LICENSE.txt",
+    "sha256": "C80C5789748D955C4A650562BAA0D750494E2C7128C2CA66AAEBE2E3C4E198BF",
+    "bytes": 1083
+  },
+  {
+    "path": "licenses/Local-Additions-MIT.txt",
+    "sha256": "19D701F2E2F9929294600A7FB97846336A635DD73CC0B7843A72C5275680DB08",
+    "bytes": 1122
+  },
+  {
+    "path": "licenses/MIT.txt",
+    "sha256": "1CA3502222D967F3BE5751C55F6B7EE735B5383909C3B501495F54B216DBF227",
+    "bytes": 1084
+  },
+  {
+    "path": "licenses/Ultimate-ASI-Loader-LICENSE.txt",
+    "sha256": "7F13E940647B3240ED82DDDE7F99579A4F5BF6495F2EA172C81720CED4EBC8FB",
+    "bytes": 1069
+  },
+  {
+    "path": "licenses/Vulkan-Headers-LICENSE.md",
+    "sha256": "AC24E5EA920E4318E4D02C4086AE51F53CFB03FEED06C18DF1019E7ADA1EC7BC",
+    "bytes": 458
+  },
+  {
+    "path": "OptionalLoader/dinput8.dll",
+    "sha256": "031A3E5576D91DCE1E438D36B9A3D462C7334AB4791990A8FF1E3DDC0E132DAF",
+    "bytes": 1198304
+  },
+  {
+    "path": "README.txt",
+    "sha256": "6D42B99C527655DB92D7D7821E909D70C7F9A225B2EB5FB700CF999C238A7A69",
+    "bytes": 335
+  }
+]
