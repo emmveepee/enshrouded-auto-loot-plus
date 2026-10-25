@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param([string]$GamePath, [switch]$UseExistingAsiLoader, [switch]$ReplaceExisting, [switch]$AllowDifferentGameBuild)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
@@ -49,7 +49,7 @@ if(Test-Path -LiteralPath $loader){
 # Paths are generated on the recipient PC, never copied from the sender.
 $ini=@"
 [Diagnostics]
-Module=$(Join-Path $GamePath 'mods\AutoLootClient\Probe134.dll')
+Module=$(Join-Path $GamePath 'mods\AutoLootClient\Probe136.dll')
 LogPath=$(Join-Path $GamePath 'mods\AutoLootClient\AutoLoot.log')
 Verbose=0
 [Testing]
@@ -68,6 +68,7 @@ HideAutomaticCorpseHud=0
 DirectedResourceAutoLoot=1
 DirectedCorpseAutoLoot=1
 TargetedCorpseAutoLoot=1
+CollectAnimalProduce=1
 PauseAutomaticActions=1
 "@
 $plan += [pscustomobject]@{Source=$null;Relative='ClientLootRequests.ini';Generated=$true}

@@ -38,7 +38,10 @@ inline bool NeedsOpening(const Candidate& c,bool offered,uint64_t lastOpen,uint6
 }
 inline bool AcceptedCorpse(bool knownCorpse,bool inRange,bool quest){return knownCorpse&&inRange&&!quest;}
 struct VerifiedAck {uintptr_t world=0;uint32_t player=0,host=0,sequence=0;uint64_t at=0;};
-struct IssuedLoot {uintptr_t world=0;uint32_t player=0,source=0;uint64_t at=0;};
+struct IssuedLoot {uintptr_t world=0;uint32_t player=0,source=0;uint64_t at=0;bool animalProduce=false;};
+// Collecting produce switches the offer back to Pet before the receipt arrives.
+// Recognize only an exact issued collection receipt, never a new input permit.
+inline bool IssuedProduceReceipt(const IssuedLoot& issued,uintptr_t world,uint32_t player,uint32_t host,uint64_t now,bool livingTameKnown){return livingTameKnown&&issued.animalProduce&&issued.source&&issued.world==world&&issued.player==player&&issued.source==host&&issued.at&&now>=issued.at&&now-issued.at<=5000;}
 // A validated loot object may disappear between our tap and its first callback.
 // This only defers an exact recently issued, now-absent target. It does not
 // validate a new live target or treat the request as a successful pickup.

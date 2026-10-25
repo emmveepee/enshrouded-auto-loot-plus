@@ -83,6 +83,7 @@ static void RefreshRadius(){
  auto next=pickupMenu;const bool valid=loot_config::ReadMenu(file,next);fclose(file);if(!valid)return;
  static std::string previous;char state[512];sprintf_s(state,"enabled=%u auto=%u radius=%.3f ground=%u stones=%u collectibles=%u plants=%u farm=%u corpses=%u chests=%u instant=%u sight=%u smash=%u buildable=%u stack=%u backpack=%u touch=%u debug=%u",next.enabled,next.automatic,next.radius,next.ground,next.stones,next.collectibles,next.plants,next.farm,next.corpses,next.chests,next.instant,next.sight,next.smash,next.buildable,next.stack,next.backpack,next.touchZones,next.debug);
  if(previous!=state){Log("MENU_POLICY %s",state);previous=state;}
+ next.animalProduce=GetPrivateProfileIntW(L"Safety",L"CollectAnimalProduce",1,ini.c_str())==1;
  pickupMenu=next;pickupRadius=next.radius;menuReady=true;
 }
 static size_t templateMember=0;static bool templateChecked=false;
@@ -92,18 +93,24 @@ static const TemplatePolicy* TemplateForRecord(void* record){
  auto descriptor=Read<void*>(record,templateMember);if(!descriptor)return nullptr;
  return FindTemplatePolicy(Read<uint64_t>(descriptor),Read<uint64_t>(descriptor,8));
 }
+static bool LivingTameAnimal(void* world,uint32_t id){auto health=Component(world,abi::NetworkHealth::hash,id);return Component(world,0x1399e0bau,id)&&health&&Read<uint32_t>(health,abi::NetworkHealth::healthMax)>0&&Read<uint32_t>(health,abi::NetworkHealth::health)>0;}
+static bool AnimalProduceReady(void* world,uint32_t id,uint32_t verb){
+ auto offer=Component(world,abi::Offer::hash,id);
+ return verb&&LivingTameAnimal(world,id)&&offer&&Read<uint8_t>(offer,abi::Offer::isOffered)&&Read<uint32_t>(offer,abi::Offer::verbId)==verb;
+}
 static loot_config::Category CategoryForRecord(void* world,uint32_t id,void* record){
  auto info=TemplateForRecord(record);if(info&&(info->category==loot_config::Category::Blocked||loot_config::PetTemplate(info->name)))return loot_config::Category::Blocked;
  auto actor=Component(world,abi::NetworkActor::hash,id);auto health=Component(world,abi::NetworkHealth::hash,id);
  if(actor&&health&&Read<uint32_t>(health,abi::NetworkHealth::healthMax)>0&&Read<uint32_t>(health,abi::NetworkHealth::health)==0)return loot_config::Category::Corpse;
+ if(info&&info->category==loot_config::Category::AnimalProduce&&!AnimalProduceReady(world,id,info->produceVerb))return loot_config::Category::Blocked;
  return info?info->category:loot_config::Category::Unknown;
 }
 
-struct Seen {loot_config::Category category=loot_config::Category::Unknown;uint32_t entity=0,item=0,count=0,attempts=0,openings=0;uint64_t lastSeen=0,lastRequest=0,lastOpen=0,poseRetryAt=0,lastAttempt=0;bool wasPopulated=false,depleted=false;double distance2=HUGE_VAL;};
+struct Seen {loot_config::Category category=loot_config::Category::Unknown;uint32_t entity=0,item=0,count=0,attempts=0,openings=0;uint64_t lastSeen=0,lastRequest=0,lastOpen=0,poseRetryAt=0,lastAttempt=0;bool wasPopulated=false,depleted=false;uint32_t produceVerb=0;double distance2=HUGE_VAL;};
 static Seen seen[1024];
 static uint64_t lastScan=0,lastSummary=0,scans=0,requests=0;
 static loot_config::Category CachedCategory(uint32_t id){for(const auto& item:seen)if(item.entity==id&&GetTickCount64()-item.lastSeen<500)return item.category;return loot_config::Category::Unknown;}
-static bool DirectedLootTarget(void*,uint32_t id,bool resources){auto c=CachedCategory(id);return loot_config::Allowed(pickupMenu,c)&&(c==loot_config::Category::Corpse||(resources&&loot_config::ResourceCategory(c)));}
+static bool DirectedLootTarget(void* world,uint32_t id,bool resources){auto c=CachedCategory(id);if(c==loot_config::Category::AnimalProduce){for(const auto& entry:seen)if(entry.entity==id)return resources&&loot_config::Allowed(pickupMenu,c)&&AnimalProduceReady(world,id,entry.produceVerb);return false;}return loot_config::Allowed(pickupMenu,c)&&(c==loot_config::Category::Corpse||(resources&&loot_config::ResourceCategory(c)));}
 
 static double Distance2(void* a,void* b){double s=0;for(int i=0;i<3;++i){double d=((double)Read<int64_t>(a,i*8)-(double)Read<int64_t>(b,i*8))/4294967296.0;s+=d*d;}return s;}
 static bool GameForeground(){DWORD pid=0;GetWindowThreadProcessId(GetForegroundWindow(),&pid);return pid==GetCurrentProcessId();}
@@ -154,6 +161,7 @@ static void Scan(void* world,uint32_t player,uint8_t* input) {
   auto p=Component(world,abi::WorldTransform::hash,id);if(p)++transforms;if(!p)continue;
   const double d2=Distance2(pos,p);if(d2>(std::max)(64.0,radius2))continue;++nearby;
   auto& retry=Track(id);const auto category=CategoryForRecord(world,id,map->values[n]);const bool categoryAllowed=menuReady&&loot_config::Allowed(pickupMenu,category);retry.category=category;
+  if(category==loot_config::Category::AnimalProduce||category==loot_config::Category::Blocked){auto policy=TemplateForRecord(map->values[n]);retry.produceVerb=policy?policy->produceVerb:0;}else retry.produceVerb=0;
   if(snapshotNow||now-retry.lastSeen>3000){const auto info=TemplateForRecord(map->values[n]);Log("TARGET_POLICY id=%u name=%s category=%u allowed=%u distance=%.2f",id,info?info->name:"<unknown>",unsigned(category),categoryAllowed,sqrt(d2));}
   if(now-retry.lastSeen>10000||(retry.lastRequest&&now-retry.lastRequest>5000))retry.attempts=0;
   if(now-retry.lastSeen>10000)retry.openings=0;
@@ -527,7 +535,7 @@ static void* __fastcall OnNetworkInput(void* out,void* world,uint32_t hash,uint3
    native.distance=Read<float>(camera,abi::ClientCamera::distance);
    loot_aim::Vec target{};for(unsigned i=0;i<3;++i)target[i]=double(Read<int64_t>(dst,i*8))/4294967296.0;target[1]+=0.25;
    Track(aimSource).lastAttempt=GetTickCount64();
-   if(loot_aim::Compose(native,target,directedCamera)){directedSource=aimSource;directedWorld=world;directedPlayer=player;directedStartTick=tick;selectionConfirmations=0;selectionTick=tick;directedProtected=protectedOffers!=0;directedStarted=GetTickCount64();lastDirected=directedStarted;directedTapped=false;directedTestActive=true;if(!verifyAt){beforePickup=InventorySnapshot(world,player);verifyAt=directedStarted+1500;verifyWorld=world;verifyPlayer=player;}++ClientLootRuntimeStatus.begins;Log("DIRECTED_CORPSE_TEST_BEGIN source=%u unsafe=%u automatic=%u visible_camera_changed=0 protected_offers=%u",aimSource,unsafeOffers,!directedManual,protectedOffers);}
+   if(loot_aim::Compose(native,target,directedCamera)){directedSource=aimSource;directedWorld=world;directedPlayer=player;directedStartTick=tick;selectionConfirmations=0;selectionTick=tick;directedProtected=protectedOffers!=0||CachedCategory(aimSource)==loot_config::Category::AnimalProduce;directedStarted=GetTickCount64();lastDirected=directedStarted;directedTapped=false;directedTestActive=true;if(!verifyAt){beforePickup=InventorySnapshot(world,player);verifyAt=directedStarted+1500;verifyWorld=world;verifyPlayer=player;}++ClientLootRuntimeStatus.begins;Log("DIRECTED_CORPSE_TEST_BEGIN source=%u unsafe=%u automatic=%u visible_camera_changed=0 protected_offers=%u",aimSource,unsafeOffers,!directedManual,protectedOffers);}
    else{Track(aimSource).poseRetryAt=GetTickCount64()+100;static uint64_t cameraFailureAt=0;if(GetTickCount64()-cameraFailureAt>=1000){cameraFailureAt=GetTickCount64();auto f=loot_aim::Forward(native.orientation);++ClientLootRuntimeStatus.poseFails;Log("DIRECTED_CORPSE_TEST_BLOCKED source=%u reason=camera_pose camera=%.6f,%.6f,%.6f quaternion=%.6f,%.6f,%.6f,%.6f distance=%.6f target=%.6f,%.6f,%.6f focus_delta=%.6f,%.6f,%.6f",aimSource,native.position[0],native.position[1],native.position[2],native.orientation[0],native.orientation[1],native.orientation[2],native.orientation[3],native.distance,target[0],target[1],target[2],target[0]-native.position[0]-f[0]*native.distance,target[1]-native.position[1]-f[1]*native.distance,target[2]-native.position[2]-f[2]*native.distance);}}
   }else Log("DIRECTED_CORPSE_TEST_BLOCKED source=%u known=%u quest=%u unsafe=%u active_host=%llu",aimSource,known,quest,unsafeOffers,interactionHost);
  }
@@ -536,11 +544,12 @@ static void* __fastcall OnNetworkInput(void* out,void* world,uint32_t hash,uint3
   directedProtected=directedProtected||protectedOffers!=0;
   const uint64_t selectionAge=elapsed;
   if(tick!=selectionTick){selectionTick=tick;if(selectionAge>=100&&selectedTargets&&Read<uint64_t>(selectedTargets,abi::NetworkSelectedTargets::targetIds+2*abi::GameObjectId::size+abi::GameObjectId::value)==directedSource&&Read<uint8_t>(selectedTargets,abi::NetworkSelectedTargets::targetIds+2*abi::GameObjectId::size+abi::GameObjectId::type)==0)++selectionConfirmations;else selectionConfirmations=0;}
-  if(!directedGate||!loot_config::Allowed(pickupMenu,CachedCategory(directedSource))||world!=directedWorld||player!=directedPlayer||!pos||!dst||Distance2(pos,dst)>pickupRadius*pickupRadius||coldOpeningBlockers){++ClientLootRuntimeStatus.aborts;Log("DIRECTED_CORPSE_TEST_ABORT source=%u elapsed=%llu gate=%u range=%u unsafe=%u blockers=%u",directedSource,(unsigned long long)elapsed,directedGate,pos&&dst&&Distance2(pos,dst)<=pickupRadius*pickupRadius,unsafeOffers,coldOpeningBlockers);directedTestActive=false;}
+  if(!directedGate||!DirectedLootTarget(world,directedSource,resources)||world!=directedWorld||player!=directedPlayer||!pos||!dst||Distance2(pos,dst)>pickupRadius*pickupRadius||coldOpeningBlockers){++ClientLootRuntimeStatus.aborts;Log("DIRECTED_CORPSE_TEST_ABORT source=%u elapsed=%llu gate=%u range=%u unsafe=%u blockers=%u",directedSource,(unsigned long long)elapsed,directedGate,pos&&dst&&Distance2(pos,dst)<=pickupRadius*pickupRadius,unsafeOffers,coldOpeningBlockers);directedTestActive=false;}
   else if(interactionHost&&!directedTapped){Log("DIRECTED_CORPSE_TEST_DEFER source=%u previous_host=%llu before_tap=1",directedSource,interactionHost);directedTestActive=false;}
   else if(interactionHost){
    const uint32_t actual=uint32_t(interactionHost);auto actualPos=Component(world,abi::WorldTransform::hash,actual);bool quest=false;
-   const bool known=interactionHost==actual&&DirectedLootTarget(world,actual,resources);
+   bool known=interactionHost==actual&&DirectedLootTarget(world,actual,resources);
+   if(!known&&resources&&interactionHost==actual){const auto& tracked=Track(actual);const bool farmIdentity=tracked.produceVerb&&GetTickCount64()-tracked.lastSeen<500&&LivingTameAnimal(world,actual);for(const auto& issued:issuedLoot)if(corpse_transfer::IssuedProduceReceipt(issued,reinterpret_cast<uintptr_t>(world),player,actual,GetTickCount64(),farmIdentity)){known=true;break;}}
    if(known)for(auto [item,count]:InventorySnapshot(world,actual))if(count&&std::binary_search(questItems.begin(),questItems.end(),item))quest=true;
    const bool inRange=actualPos?pos&&Distance2(pos,actualPos)<=pickupRadius*pickupRadius:known&&Track(actual).distance2<=pickupRadius*pickupRadius;
    const bool valid=corpse_transfer::AcceptedCorpse(known,inRange,quest);
@@ -568,7 +577,7 @@ static void* __fastcall OnNetworkInput(void* out,void* world,uint32_t hash,uint3
    memcpy(shadow+abi::InputData::movementStick,preservedMovement.data(),sizeof(float)*2);
    for(unsigned i=0;i<3;++i){auto fixed=(int64_t)std::llround(directedCamera.position[i]*4294967296.0);memcpy(camera+abi::ClientCamera::position+i*8,&fixed,8);}
    memcpy(camera+abi::ClientCamera::orientation,directedCamera.orientation.data(),16);
-   if(corpse_transfer::CanTap(directedStartTick,tick,elapsed)&&corpse_transfer::ProtectedTapReady(directedProtected,selectedTargets!=nullptr,selectedTargets?Read<uint64_t>(selectedTargets,abi::NetworkSelectedTargets::targetIds+2*abi::GameObjectId::size+abi::GameObjectId::value):0,selectedTargets?Read<uint8_t>(selectedTargets,abi::NetworkSelectedTargets::targetIds+2*abi::GameObjectId::size+abi::GameObjectId::type):0,directedSource,selectionConfirmations,selectionAge)&&!directedTapped){auto bits=Read<uint64_t>(shadow,abi::InputData::digitalInput)|0x40ull;memcpy(shadow+abi::InputData::digitalInput,&bits,8);directedTapped=true;issuedLoot[issuedNext++%64]={reinterpret_cast<uintptr_t>(world),player,directedSource,GetTickCount64()};if(CachedCategory(directedSource)==loot_config::Category::Corpse)corpse_menu_recovery::Requested(world,player,directedSource);auto& tracked=Track(directedSource);tracked.lastOpen=GetTickCount64();if(tracked.openings<3)++tracked.openings;++ClientLootRuntimeStatus.taps;Log("DIRECTED_CORPSE_TEST_TAP source=%u elapsed=%llu distance=%.2f protected=%u selected=%llu confirmed=%u",directedSource,(unsigned long long)elapsed,sqrt(Distance2(pos,dst)),directedProtected,selectedTargets?Read<unsigned long long>(selectedTargets,abi::NetworkSelectedTargets::targetIds+2*abi::GameObjectId::size+abi::GameObjectId::value):0,selectionConfirmations);}
+   if(corpse_transfer::CanTap(directedStartTick,tick,elapsed)&&corpse_transfer::ProtectedTapReady(directedProtected,selectedTargets!=nullptr,selectedTargets?Read<uint64_t>(selectedTargets,abi::NetworkSelectedTargets::targetIds+2*abi::GameObjectId::size+abi::GameObjectId::value):0,selectedTargets?Read<uint8_t>(selectedTargets,abi::NetworkSelectedTargets::targetIds+2*abi::GameObjectId::size+abi::GameObjectId::type):0,directedSource,selectionConfirmations,selectionAge)&&!directedTapped){auto bits=Read<uint64_t>(shadow,abi::InputData::digitalInput)|0x40ull;memcpy(shadow+abi::InputData::digitalInput,&bits,8);directedTapped=true;issuedLoot[issuedNext++%64]={reinterpret_cast<uintptr_t>(world),player,directedSource,GetTickCount64(),CachedCategory(directedSource)==loot_config::Category::AnimalProduce};if(CachedCategory(directedSource)==loot_config::Category::Corpse)corpse_menu_recovery::Requested(world,player,directedSource);auto& tracked=Track(directedSource);tracked.lastOpen=GetTickCount64();if(tracked.openings<3)++tracked.openings;++ClientLootRuntimeStatus.taps;Log("DIRECTED_CORPSE_TEST_TAP source=%u elapsed=%llu distance=%.2f protected=%u selected=%llu confirmed=%u",directedSource,(unsigned long long)elapsed,sqrt(Distance2(pos,dst)),directedProtected,selectedTargets?Read<unsigned long long>(selectedTargets,abi::NetworkSelectedTargets::targetIds+2*abi::GameObjectId::size+abi::GameObjectId::value):0,selectionConfirmations);}
    auto ptr=shadow;memcpy(out,&ptr,sizeof ptr);
   }
  }
@@ -686,6 +695,8 @@ FILE* q=nullptr;auto quest=dir+L"\\mods\\auto-loot-plus\\quest_items.txt";if(!_w
 #endif
 }return TRUE;
 }
+
+
 
 
 

@@ -1,5 +1,5 @@
 [Diagnostics]
-Module=<GAME>\mods\AutoLootClient\Probe134.dll
+Module=<GAME>\mods\AutoLootClient\Probe136.dll
 LogPath=<GAME>\mods\AutoLootClient\AutoLoot.log
 Verbose=0
 [Testing]
@@ -18,4 +18,6 @@ HideAutomaticCorpseHud=0
 DirectedResourceAutoLoot=1
 DirectedCorpseAutoLoot=1
 TargetedCorpseAutoLoot=1
+CollectAnimalProduce=1
 PauseAutomaticActions=1
+

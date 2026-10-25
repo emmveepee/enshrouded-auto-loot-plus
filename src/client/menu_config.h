@@ -11,6 +11,7 @@ struct Menu {
     bool ground=true, stones=true, collectibles=true, plants=false, farm=false;
     bool corpses=false, chests=false, smash=false, buildable=true, backpack=false;
     bool touchZones=false, debug=false;
+    bool animalProduce=true;
     double radius=3;
     unsigned stack=0;
 };
@@ -65,11 +66,11 @@ inline bool ReadMenu(FILE* file, Menu& menu) {
     if(std::ferror(file)||(present&0x7ff)!=0x7ff||!radiusPresent)return false;
     menu=next;return true;
 }
-enum class Category { Unknown, Ground, Stone, Collectible, Plant, Farm, Corpse, Chest, Blocked, Growing };
+enum class Category { Unknown, Ground, Stone, Collectible, Plant, Farm, Corpse, Chest, Blocked, Growing, AnimalProduce };
 // Placed companion animals offer petting, not loot. Exclude the template family
 // before dynamic corpse promotion, including pets with zero replicated health.
 inline bool PetTemplate(const char* name){constexpr char prefix[]="PLACEMENT_HELPER_Animal_Pet_";return name&&!std::strncmp(name,prefix,sizeof(prefix)-1);}
-inline bool ResourceCategory(Category c){return c==Category::Ground||c==Category::Stone||c==Category::Collectible||c==Category::Plant||c==Category::Farm;}
+inline bool ResourceCategory(Category c){return c==Category::Ground||c==Category::Stone||c==Category::Collectible||c==Category::Plant||c==Category::Farm||c==Category::AnimalProduce;}
 inline bool UnsupportedContextVerb(Category category, unsigned) {
     // Known loot remains loot regardless of the interaction's displayed label.
     // Furniture and other unclassified objects still fail category validation.
@@ -94,6 +95,7 @@ inline bool Allowed(const Menu& m, Category category) {
         case Category::Collectible:return m.collectibles;
         case Category::Plant:return m.plants;
         case Category::Farm:return m.farm;
+        case Category::AnimalProduce:return m.animalProduce;
         case Category::Corpse:return m.corpses;
         case Category::Chest:return m.chests;
         default:return false;
