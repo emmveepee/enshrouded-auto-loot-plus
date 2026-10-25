@@ -37,6 +37,12 @@ inline bool NeedsOpening(const Candidate& c,bool offered,uint64_t lastOpen,uint6
   RetryReady(lastOpen,now,openings);
 }
 inline bool AcceptedCorpse(bool knownCorpse,bool inRange,bool quest){return knownCorpse&&inRange&&!quest;}
+// A receipt describes an interaction the server already processed. The player
+// may have moved outside the local slider radius before this callback arrived.
+// Discard that known, enabled, non-quest receipt; do not count success, extend
+// outgoing reach or permanently disable all future pickup. Unknown/protected
+// or missing-position targets retain the separate strict receipt safeguards.
+inline bool DeferMovedReceipt(bool known,bool inRange,bool quest,bool hasPosition){return known&&!inRange&&!quest&&hasPosition;}
 struct VerifiedAck {uintptr_t world=0;uint32_t player=0,host=0,sequence=0;uint64_t at=0;};
 struct IssuedLoot {uintptr_t world=0;uint32_t player=0,source=0;uint64_t at=0;bool animalProduce=false;};
 // Collecting produce switches the offer back to Pet before the receipt arrives.

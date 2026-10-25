@@ -69,6 +69,14 @@ int main(){
  Check(corpse_transfer::AcceptedCorpse(true,true,false),"another nearby known corpse is valid progress");
  Check(!corpse_transfer::AcceptedCorpse(false,true,false),"furniture and unknown target stop opening");
  Check(!corpse_transfer::AcceptedCorpse(true,false,false),"distant target stops opening");
+ // Captured136stop: host405693 known1/range0/quest0/position1. Receipt
+ // rejection must not permanently latch otherwise eligible nearby plants off.
+ Check(corpse_transfer::DeferMovedReceipt(true,false,false,true),"known moved receipt waits for idle without global safety stop");
+ Check(!corpse_transfer::AcceptedCorpse(true,false,false),"deferred receipt is not successful pickup or new range permission");
+ Check(!corpse_transfer::DeferMovedReceipt(false,false,false,true),"unknown/protected live target still rejected");
+ Check(!corpse_transfer::DeferMovedReceipt(true,false,true,true),"quest receipt never deferred through moved-target exception");
+ Check(!corpse_transfer::DeferMovedReceipt(true,false,false,false),"missing position uses exact issued/replayed safeguards");
+ Check(!corpse_transfer::DeferMovedReceipt(true,true,false,true),"normal in-range receipt follows ordinary acceptance");
  Check(!corpse_transfer::AcceptedCorpse(true,true,true),"quest target stops opening");
  Check(corpse_transfer::PreferOpening(0,16,9000,1),"untried farther corpse outranks empty nearest retry");
  Check(!corpse_transfer::PreferOpening(9000,1,0,16),"empty nearest cannot starve an untried corpse");

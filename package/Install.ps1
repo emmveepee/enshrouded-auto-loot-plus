@@ -49,7 +49,7 @@ if(Test-Path -LiteralPath $loader){
 # Paths are generated on the recipient PC, never copied from the sender.
 $ini=@"
 [Diagnostics]
-Module=$(Join-Path $GamePath 'mods\AutoLootClient\Probe136.dll')
+Module=$(Join-Path $GamePath 'mods\AutoLootClient\Probe137.dll')
 LogPath=$(Join-Path $GamePath 'mods\AutoLootClient\AutoLoot.log')
 Verbose=0
 [Testing]
@@ -111,3 +111,4 @@ try {
 Write-Host "Installed and hash-verified. Recovery receipt: $backup\receipt.json"
 Write-Host 'Start Enshrouded through Steam. F8 = Auto Loot settings.'
 Write-Host 'If you kept a custom ASI loader, ensure it actually loads root-level ASI files.'
+

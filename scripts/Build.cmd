@@ -16,12 +16,13 @@ if not exist build mkdir build
 pushd build
 cl /nologo /O2 /MT /EHsc /std:c++17 /W4 /utf-8 /LD ..\src\client\client_requests.cpp /Fo:Bootstrap.obj /link /OUT:ClientLootRequests.asi kernel32.lib user32.lib advapi32.lib
 if errorlevel 1 exit /b 1
-cl /nologo /O2 /MT /EHsc /std:c++17 /W4 /utf-8 /DCLIENT_REQUESTS_EXTENSION /LD ..\src\client\client_requests.cpp /Fo:Helper136.obj /link /OUT:Probe136.dll kernel32.lib user32.lib advapi32.lib
+cl /nologo /O2 /MT /EHsc /std:c++17 /W4 /utf-8 /DCLIENT_REQUESTS_EXTENSION /LD ..\src\client\client_requests.cpp /Fo:Helper137.obj /link /OUT:Probe137.dll kernel32.lib user32.lib advapi32.lib
 if errorlevel 1 exit /b 1
 cl /nologo /O2 /MT /EHsc /std:c++17 /W3 /utf-8 /DNDEBUG /DIMGUI_IMPL_VULKAN_NO_PROTOTYPES /I"%IMGUI_DIR%" /I"%VULKAN_INCLUDE_DIR%" /LD ..\src\menu\main.cpp ..\src\menu\overlay.cpp "%IMGUI_DIR%\imgui.cpp" "%IMGUI_DIR%\imgui_draw.cpp" "%IMGUI_DIR%\imgui_tables.cpp" "%IMGUI_DIR%\imgui_widgets.cpp" "%IMGUI_DIR%\backends\imgui_impl_vulkan.cpp" /link /DEF:..\src\menu\exports.def /OUT:AutoLootPlus.asi kernel32.lib user32.lib
 if errorlevel 1 exit /b 1
 popd
 copy /y build\ClientLootRequests.asi package\GameFiles\ClientLootRequests.asi >nul
 copy /y build\AutoLootPlus.asi package\GameFiles\AutoLootPlus.asi >nul
-echo Build complete. package retains the exact previously tested helper136 snapshot; build\Probe136.dll is a rebuild for comparison.
+echo Build complete. package retains the exact previously tested helper137 snapshot; build\Probe137.dll is a rebuild for comparison.
+
 

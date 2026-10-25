@@ -9,3 +9,7 @@
 - UI pump fixture retains zero per-transfer VirtualQuery calls and zero synchronous file opens. Native timing is not live FPS evidence.
 - Mixed growing/wild patches can still wait on protected native selection. Fresh portable-package gameplay and Proton remain untested. Published helper is the exact deployed build136 binary; bootstrap/menu are portable rebuilds.
 - User confirmed the live collection result: "It is properly collecting" during the build136 farm-animal check.
+
+## Build 137 — out-of-radius receipt handling
+
+A live136stop reported a known, enabled non-quest target with a valid position outside the current pickup radius.137 discards this receipt and waits for idle; it does not count pickup success, widen new interaction reach or latch all future pickup off. Unknown/protected/quest/missing-position targets retain strict safeguards. Native regression cases reproduce the captured guard inputs and verify their negative cases. Live137 resumed accepted interaction and inventory gains after deployment; the moved-receipt branch has not yet fired again in the observed window. Earlier136tree/produce gameplay evidence remains separate from this callback correction.

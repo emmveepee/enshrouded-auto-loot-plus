@@ -12,5 +12,6 @@ struct LootRuntimeStatus {
  uint64_t lastScanAge=0,capture=0;
  uint64_t begins=0,taps=0,accepted=0,timeouts=0,aborts=0,poseFails=0,movementFails=0,gainBatches=0,gainTypes=0;
  uint64_t intended=0,selected=0,protectedOffers=0,confirmations=0,elapsed=0,distanceMm=0,resourceCategory=0;
+ uint64_t deferredRangeReceipts=0,lastDeferredHost=0,lastDeferredDistanceMm=0;
 };
 extern "C" __declspec(dllexport) LootRuntimeStatus ClientLootRuntimeStatus{};

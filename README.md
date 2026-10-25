@@ -2,11 +2,11 @@
 
 Experimental Windows x64 client mod for Steam Enshrouded. Based on Auto Loot Plus 1.0.3 by **cw** (MIT), with a client-side pickup helper and F8 settings.
 
-**Build 136** adds renewable harvest trees and ready produce from tamed farm animals (including goat milk), excludes pet dogs/cats from automatic interactions, protects growing crops, and includes corpse-menu recovery, hotbar stacking and reduced blocking work during corpse transfers. Other players and the server can remain unmodified.
+**Build 137** fixes a false global auto-loot stop from recognized loot receipts arriving outside the current radius. It retains renewable harvest trees and ready produce from tamed farm animals (including goat milk), excludes pet dogs/cats from automatic interactions, protects growing crops, and includes corpse-menu recovery, hotbar stacking and reduced blocking work during corpse transfers. Other players and the server can remain unmodified.
 
 ## Download and install
 
-Download **AutoLootPlus-Client-136.zip** from [Releases](https://github.com/emmveepee/enshrouded-auto-loot-plus/releases), extract the whole ZIP, close the game, then run `Install.cmd`. It finds Steam libraries or asks for the game folder. Start the game normally through Steam; press **F8** for settings.
+Download **AutoLootPlus-Client-137.zip** from [Releases](https://github.com/emmveepee/enshrouded-auto-loot-plus/releases), extract the whole ZIP, close the game, then run `Install.cmd`. It finds Steam libraries or asks for the game folder. Start the game normally through Steam; press **F8** for settings.
 
 The installer checks package hashes, refuses differing existing files by default, backs up replacements, and generates paths for your PC. Keep the extracted folder's `Backups` directory for recovery. Existing custom ASI loaders require review and `-UseExistingAsiLoader`; do not overwrite one blindly. Updates to an existing auto-loot installation may need `-ReplaceExisting` after reviewing its configuration.
 
@@ -53,5 +53,6 @@ scripts\Test.cmd
 ## Credits and license
 
 Upstream Auto Loot Plus 1.0.3 by cw; source supplied with the original mod's MIT notice. Local additions are MIT. See [LICENSE](LICENSE) and `package/licenses/` for upstream, local, Dear ImGui, Vulkan-Headers and [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader) notices. No game executable, Steam API DLL, save, credentials, private logs or unrelated mods are distributed.
+
 
 
