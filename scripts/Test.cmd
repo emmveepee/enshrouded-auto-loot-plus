@@ -15,5 +15,9 @@ for %%T in (animal_produce_test menu_config_test corpse_transfer_policy_test cor
  %%T.exe
  if errorlevel 1 exit /b 1
 )
+cl /nologo /O2 /MT /EHsc /std:c++17 /W4 ..\tests\native_collector_safety_test.cpp /Fe:native_collector_safety_test.exe /link user32.lib
+if errorlevel 1 exit /b 1
+native_collector_safety_test.exe
+if errorlevel 1 exit /b 1
 popd
 

@@ -49,7 +49,7 @@ if(Test-Path -LiteralPath $loader){
 # Paths are generated on the recipient PC, never copied from the sender.
 $ini=@"
 [Diagnostics]
-Module=$(Join-Path $GamePath 'mods\AutoLootClient\Probe137.dll')
+Module=$(Join-Path $GamePath 'mods\AutoLootClient\Probe169.dll')
 LogPath=$(Join-Path $GamePath 'mods\AutoLootClient\AutoLoot.log')
 Verbose=0
 [Testing]

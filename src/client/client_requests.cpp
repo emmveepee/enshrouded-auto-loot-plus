@@ -124,6 +124,16 @@ static InventoryCounts InventorySnapshot(void* world,uint32_t player){
  auto setup=(uint8_t*)Component(world,abi::InventorySetup::hash,id);if(setup)for(size_t j=0;j<16;++j){auto next=Read<uint32_t>(setup,abi::InventorySetup::linksEntities+j*4);if(next&&std::find(ids.begin(),ids.end(),next)==ids.end()&&ids.size()<64)ids.push_back(next);}}
  return items;
 }
+struct InventorySummary {uint32_t amount=0,firstItem=0;bool forbidden=false;};
+static InventorySummary SummarizeInventory(void* world,uint32_t source){
+ InventorySummary summary;
+ for(auto [item,count]:InventorySnapshot(world,source))if(count){
+  if(!summary.firstItem)summary.firstItem=item;
+  summary.amount=uint32_t((std::min)(uint64_t(UINT32_MAX),uint64_t(summary.amount)+count));
+  if(std::binary_search(questItems.begin(),questItems.end(),item))summary.forbidden=true;
+ }
+ return summary;
+}
 static InventoryCounts beforePickup;static uint64_t verifyAt=0;static void* verifyWorld=nullptr;static uint32_t verifyPlayer=0;
 static uint32_t nearPick=0,unsafeOffers=0,nearLoot=0;static double nearPickDistance=0;
 static uint32_t nearDirectCorpse=0;
@@ -179,7 +189,8 @@ static void Scan(void* world,uint32_t player,uint8_t* input) {
   uint32_t amount=0,firstItem=0;bool forbidden=false;
   if(inv&&setup&&Read<uint8_t>(setup,abi::InventorySetup::isInitialized)){
    ++withInventory;
-   for(size_t s=0;s<8;++s){auto stack=inv+s*abi::Stack::size;auto item=Read<uint32_t>(stack,abi::Stack::id);auto count=Read<uint32_t>(stack,abi::Stack::data+abi::ItemData::count);if(item&&count){if(!firstItem)firstItem=item;amount+=count;if(std::binary_search(questItems.begin(),questItems.end(),item))forbidden=true;}}
+   if(category==loot_config::Category::Corpse||category==loot_config::Category::Chest){const auto summary=SummarizeInventory(world,id);amount=summary.amount;firstItem=summary.firstItem;forbidden=summary.forbidden;}
+   else for(size_t s=0;s<8;++s){auto stack=inv+s*abi::Stack::size;auto item=Read<uint32_t>(stack,abi::Stack::id);auto count=Read<uint32_t>(stack,abi::Stack::data+abi::ItemData::count);if(item&&count){if(!firstItem)firstItem=item;amount+=count;if(std::binary_search(questItems.begin(),questItems.end(),item))forbidden=true;}}
   }
   if(categoryAllowed&&(category==loot_config::Category::Corpse||category==loot_config::Category::Chest)&&retry.attempts<3&&!forbidden&&inv&&setup&&Read<uint8_t>(setup,abi::InventorySetup::isInitialized)&&offer&&Read<uint8_t>(offer,abi::Offer::isOffered)&&d2<=lootD2&&(Read<uint32_t>(offer)==183940555u||Read<uint32_t>(offer)==2589564171u)){nearLoot=id;lootD2=d2;}
   const corpse_transfer::Candidate directCandidate{category==loot_config::Category::Corpse,categoryAllowed,inv!=nullptr,setup&&Read<uint8_t>(setup,abi::InventorySetup::isInitialized),forbidden,amount,retry.attempts,retry.lastRequest};

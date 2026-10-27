@@ -8,8 +8,8 @@ New-Item -ItemType Directory -Path $fixture -Force | Out-Null
 function Get-Process { param($Name,$ErrorAction) return }
 & $installer -GamePath $fixture -AllowDifferentGameBuild
 $ini=Get-Content (Join-Path $fixture 'ClientLootRequests.ini') -Raw
-if($ini -notlike '*mods\AutoLootClient\Probe137.dll*' -or $ini.Contains('<GAME>')){throw 'Recipient module path not generated'}
-foreach($p in @('ClientLootRequests.asi','AutoLootPlus.asi','mods/AutoLootClient/Probe137.dll','dinput8.dll')){if(!(Test-Path (Join-Path $fixture $p))){throw "Missing payload $p"}}
+if($ini -notlike '*mods\AutoLootClient\Probe169.dll*' -or $ini.Contains('<GAME>')){throw 'Recipient module path not generated'}
+foreach($p in @('ClientLootRequests.asi','AutoLootPlus.asi','mods/AutoLootClient/Probe169.dll','dinput8.dll')){if(!(Test-Path (Join-Path $fixture $p))){throw "Missing payload $p"}}
 if((Get-Content (Join-Path $fixture 'unrelated-mod.txt') -Raw) -ne 'preserve'){throw 'Unrelated file changed'}
 $refused=$false
 try {& $installer -GamePath $fixture -AllowDifferentGameBuild}catch {$refused=$_.Exception.Message -like '*Existing file differs*'}

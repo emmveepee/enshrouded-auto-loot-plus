@@ -89,6 +89,14 @@ int main(){
  auto pos=fixture[{abi::WorldTransform::hash,100}].data();Put(pos,0,int64_t(10)*4294967296ll);reject("range rechecked");Put(pos,0,int64_t(0));
  questItems={1101501148u};reject("quest inventory rejected");questItems.clear();
  Track(100).category=loot_config::Category::Blocked;reject("non-corpse rejected");Track(100).category=loot_config::Category::Corpse;
+ // Root-empty, linked-page loot must stay eligible; page quests protect all loot.
+ auto linkedSetup=Add(abi::InventorySetup::hash,900001,abi::InventorySetup::size);Put(linkedSetup,abi::InventorySetup::isInitialized,uint8_t(1));Put(linkedSetup,abi::InventorySetup::linksEntities,uint32_t(900002));
+ Add(abi::Inventory::hash,900001,abi::Inventory::size);Item(900002,1390932160u,1);
+ auto linkedSummary=SummarizeInventory(world,900001);Check(linkedSummary.amount==1&&linkedSummary.firstItem==1390932160u&&!linkedSummary.forbidden,"linked-page eternal ice item survives root-empty eligibility scan");
+ corpse_transfer::Candidate linkedCandidate{true,true,true,true,linkedSummary.forbidden,linkedSummary.amount,0,0};Check(corpse_transfer::Eligible(linkedCandidate,GetTickCount64()),"linked-only corpse remains eligible for native transfer");
+ auto cycle=Add(abi::InventorySetup::hash,900002,abi::InventorySetup::size);Put(cycle,abi::InventorySetup::linksEntities,uint32_t(900001));Check(SummarizeInventory(world,900001).amount==1,"linked-page cycle counts each inventory once");
+ questItems={1390932160u};Check(SummarizeInventory(world,900001).forbidden,"linked-page quest protects the whole corpse");questItems.clear();
+ fixture.erase({abi::Inventory::hash,900002});Check(SummarizeInventory(world,900001).amount==0,"fully empty linked inventory is empty");fixture.erase({abi::Inventory::hash,900001});fixture.erase({abi::InventorySetup::hash,900001});fixture.erase({abi::InventorySetup::hash,900002});
  // Hotbar routing still uses the actual reflected SlotSelection pages.
  auto selection=Add(abi::SlotSelection::hash,1,abi::SlotSelection::size);Put(selection,abi::SlotSelection::actionbarEntityIds,uint32_t(200));Item(200,1101501148u,100);
  run();Check(commands.back()[36]==3&&Read<uint32_t>(commands.back().data(),16)==200&&Read<uint16_t>(commands.back().data(),38)==2,"existing hotbar stack priority preserved");

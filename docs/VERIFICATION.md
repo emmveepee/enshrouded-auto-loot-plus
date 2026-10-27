@@ -1,4 +1,14 @@
-# Build 136 verification
+# Verification history
+
+## Build 169 — native collector separation and linked inventories
+
+- Removed native corpse query expansion, no-PickupItem branch redirection, accept-event construction, release callbacks and loot-all stub. There is no native corpse path to bypass the helper's corpse setting or safety checks.
+- Production Patch() runs against synthetic executable memory with corpse settings on and off. Tests verify that vanilla query/skip/loot-all bytes stay unchanged, loose-item patches still install, and a missing required signature causes no writes. No game process or loot generator is executed.
+- The actual page-aware inventory summary and eligibility policy are exercised with an empty root and a linked eternal-ice item, linked cycles, linked quest protection and fully empty pages. These are synthetic inventories; no real missing item was restored.
+- All twelve published native suites pass, retaining zero per-transfer memory-region queries or synchronous file opens in the UI fixture. The installer fixture verifies payload hashes, generated paths, collision refusal, recovery and unrelated/custom-loader preservation.
+- Helper, bootstrap and native menu are rebuilt together. Fresh gameplay, source/destination conservation for delayed special drops and full inventories, and Proton remain untested. This is a repair of confirmed code defects, not proof that the earlier mod caused a specific missing drop.
+
+## Build 136 verification
 
 - Source builds with existing MSVC x64. Eleven published native suites pass, including animal produce, pet exclusion, crop protection, corpse recovery, 12,372 menu/GUID checks, movement preservation, Steam preferences and the production UI pump.
 - Added production animal-produce test exercises all eight exported tamed producer templates, untamed/dead/unoffered/other-verb cases, the independent setting, offer change immediately before a tap, exact native selection, and post-collection receipt handling. Seven dog/cat pet templates remain blocked.
